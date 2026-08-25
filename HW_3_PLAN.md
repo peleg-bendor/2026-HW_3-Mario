@@ -27,15 +27,15 @@ One new weapon — a laser — that Mario can only fire after collecting a power
 named design patterns. The exercise numbers the patterns 1 to 4, then lists the power-up, the firing
 rule and the integration separately.
 
-| Exercise item | What it names | What it asks for |
-|---|---|---|
-| 1 — Builder | `LaserBuilder`, `LaserDirector` | build the projectile in steps (speed, animation, size, damage) |
-| 2 — Factory | `LaserFactory` | return a ready projectile using the builder, so callers don't know the construction |
-| 3 — Object Pooling | `LaserPoolManager` | fired takes from the pool, hit or expired returns to it |
-| 4 — Template | `BaseProjectile` with `Fire()` | the laser inherits it and fires straight up only |
-| Power-up | `LaserPowerUp` | modelled on `FireFlowerPowerUp` |
-| Firing | — | straight up; through enemies or dying on hit is our choice; the logic lives in the projectile |
-| Integration | `WeaponsHandler`, `PlayerPowerUp` | no laser without the power-up; log fired / taken / hit / returned |
+| Exercise item      | What it names                     | What it asks for                                                                              |
+| ------------------ | --------------------------------- | --------------------------------------------------------------------------------------------- |
+| 1 — Builder        | `LaserBuilder`, `LaserDirector`   | build the projectile in steps (speed, animation, size, damage)                                |
+| 2 — Factory        | `LaserFactory`                    | return a ready projectile using the builder, so callers don't know the construction           |
+| 3 — Object Pooling | `LaserPoolManager`                | fired takes from the pool, hit or expired returns to it                                       |
+| 4 — Template       | `BaseProjectile` with `Fire()`    | the laser inherits it and fires straight up only                                              |
+| Power-up           | `LaserPowerUp`                    | modelled on `FireFlowerPowerUp`                                                               |
+| Firing             | —                                 | straight up; through enemies or dying on hit is our choice; the logic lives in the projectile |
+| Integration        | `WeaponsHandler`, `PlayerPowerUp` | no laser without the power-up; log fired / taken / hit / returned                             |
 
 Then: record each item working, show and explain the code per item, and play the game at the end —
 the same submission shape as Exercises 1 and 2.
@@ -72,16 +72,16 @@ item it satisfies. The video presents them in the exercise's own order — which
 Exercise 2's video already did, showing items 1, 2, 3, 4, 8, 5, 6, 7, 9 against a different build
 order. See `HW_2_PLAN.md` Stage 10.
 
-| Stage | Exercise item |
-|---|---|
-| 1 — `BaseProjectile` and `ProjectileLaser` | item 4, Template |
-| 2 — `LaserBuilder` and `LaserDirector` | item 1, Builder |
-| 3 — `LaserFactory` | item 2, Factory |
-| 4 — `LaserPoolManager` | item 3, Pooling |
-| 5 — The weapon, the power-up and the integration | power-up, firing, integration |
-| 6 — Boomerang | nothing; Peleg's addition |
-| 7 — Full playthrough | nothing; regression before the video |
-| 8 — Video script | the submission |
+| Stage                                            | Exercise item                        |
+| ------------------------------------------------ | ------------------------------------ |
+| 1 — `BaseProjectile` and `ProjectileLaser`       | item 4, Template                     |
+| 2 — `LaserBuilder` and `LaserDirector`           | item 1, Builder                      |
+| 3 — `LaserFactory`                               | item 2, Factory                      |
+| 4 — `LaserPoolManager`                           | item 3, Pooling                      |
+| 5 — The weapon, the power-up and the integration | power-up, firing, integration        |
+| 6 — Boomerang                                    | nothing; Peleg's addition            |
+| 7 — Full playthrough                             | nothing; regression before the video |
+| 8 — Video script                                 | the submission                       |
 
 Stage 0 gets the project versioned and fixes what didn't travel in the `Assets` copy. Stage 0.5 is
 inherited-code cleanup carried over from Exercise 2's parked list.
@@ -93,11 +93,11 @@ never placed in a level, so its prefab gets no `Sprite_` prefix, the same as `Fi
 `Axe.prefab` already do. Same for the thrown boomerang, which is a separate prefab from the boomerang
 pickup exactly the way `Axe.prefab` is separate from `Sprite_Axe.prefab`.
 
-| `TilePrefabMap` id | Unity prefab | Stage |
-|---|---|---|
-| 1-16 | unchanged from Exercise 2 | |
-| 17 | `Sprite_LaserGun` | 5 |
-| 18 | `Sprite_Boomerang` | 6 |
+| `TilePrefabMap` id | Unity prefab              | Stage |
+| ------------------ | ------------------------- | ----- |
+| 1-16               | unchanged from Exercise 2 |       |
+| 17                 | `Sprite_LaserGun`         | 5     |
+| 18                 | `Sprite_Boomerang`        | 6     |
 
 Runtime-only prefabs, no tile id and no `Sprite_` prefix: `LaserRay.prefab` (Stage 1),
 `Boomerang.prefab` (Stage 6).
@@ -144,7 +144,7 @@ Also updated, outside this project: the repo-root `CLAUDE.md`, which loads at th
 session and still pointed at Exercise 2 for every path. It now points here, and carries a Design
 vocabulary section mirroring the one above.
 
-#### Step 3 — `.gitattributes` and the line endings `[ ]`
+#### Step 3 — `.gitattributes` and the line endings `[x]`
 
 Exercise 2's logging conversion wrote LF into a CRLF project and left the repo holding both. That
 split travelled here intact: **46 of the 63 scripts are LF and 17 are CRLF**, confirmed by reading the
@@ -155,7 +155,7 @@ whole file in the other convention turns a two-line change into a whole-file dif
 what happened twice while Exercise 2's plan was being edited. The fix is a `.gitattributes` telling
 git to normalize on commit, not another sweep through the files.
 
-#### Step 4 — The obsolete API warning `[ ]`
+#### Step 4 — The obsolete API warning `[x]`
 
 `LogsWindow.cs:24` calls `FindFirstObjectByType<T>()`, which Unity has deprecated in favour of
 `FindAnyObjectByType`, on the grounds that the "first" version depends on instance-id ordering. The
@@ -165,7 +165,7 @@ irrelevant here and the rename is a one-word edit with no behaviour change.
 Worth doing in Stage 0 rather than living with it: the video puts the Console on screen, and a
 standing warning there invites a question that costs more to answer than the fix costs to make.
 
-#### Step 5 — A clean start in Tiled `[ ]`
+#### Step 5 — A clean start in Tiled `[x]`
 
 Per Peleg: rather than carry Exercise 2's leftovers, get Tiled correct once and export from it, so
 the level file, the map and the scene all agree before any feature work starts.
@@ -192,7 +192,7 @@ unchanged.
 That leaves Tiled holding the current level with both new tile types in it, `TilePrefabMap` ids 17
 and 18 free for them, and nothing left over from the previous exercise anywhere in the pipeline.
 
-#### Step 6 — Git `[ ]`
+#### Step 6 — Git `[x]`
 
 `git init` and an initial commit, so history starts from a working, cleaned-up state. The remote is
 the same open question Exercise 2 had; see that plan's Stage 0 Step 3 for how it was settled.
