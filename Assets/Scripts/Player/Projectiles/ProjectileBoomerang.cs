@@ -8,7 +8,7 @@ using UnityEngine;
 public class ProjectileBoomerang : MonoBehaviour
 {
     public float speed = 8f;
-    public float lifetime = 10f;
+    public float lifetime = 6f;
 
     // How long before the end of its life the boomerang starts fading, the same warning
     // ProjectileAxe gives before it's lost for good.
@@ -19,8 +19,9 @@ public class ProjectileBoomerang : MonoBehaviour
     private Color baseColor;
     private float age = 0f;
 
-    // Whether it has already turned around once. A second wall hit destroys it instead of
-    // reversing it again.
+    // Whether it has already turned around once. Catching only counts from here on - the same
+    // guard ProjectileAxe.hasLanded gives the axe, since a boomerang spawns overlapping Mario and
+    // would otherwise catch itself the instant it's thrown.
     private bool hasTurnedAround = false;
 
     void Awake()
@@ -68,6 +69,12 @@ public class ProjectileBoomerang : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
+        if (hasTurnedAround && other.gameObject.tag == "Player")
+        {
+            Catch(other.gameObject);
+            return;
+        }
+
         IEnemy enemy = other.GetComponent<IEnemy>();
         if (enemy != null)
         {
@@ -92,6 +99,15 @@ public class ProjectileBoomerang : MonoBehaviour
         {
             Lose();
         }
+    }
+
+    private void Catch(GameObject player)
+    {
+        GameLog.Info(LogCategory.Projectile, "Boomerang caught");
+        PlayerPowerUp playerPowerUp = player.GetComponent<PlayerPowerUp>();
+        if (playerPowerUp != null)
+            playerPowerUp.CollectPowerUp(new BoomerangPowerUp());
+        Destroy(gameObject);
     }
 
     private void Lose()

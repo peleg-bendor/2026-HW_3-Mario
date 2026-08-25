@@ -1,17 +1,17 @@
 using UnityEngine;
 
-// Grants Mario one more axe. Looks up IReloadWeapon rather than AxeWeapon itself, so this
-// knows only that something on Mario can be given more ammo, not which weapon it is.
+// Grants Mario one more axe. Looks up AxeWeapon directly rather than IReloadWeapon - unqualified,
+// that lookup returns whichever reload weapon Unity enumerates first, and there are two now.
 public class AxePowerUp : IPowerUp
 {
     public void ApplyPowerUp(GameObject player)
     {
         if(player != null)
         {
-            IReloadWeapon reloadWeapon = player.GetComponentInChildren<IReloadWeapon>();
-            if(reloadWeapon != null)
+            AxeWeapon axeWeapon = player.GetComponentInChildren<AxeWeapon>();
+            if(axeWeapon != null)
             {
-                reloadWeapon.Reload();
+                axeWeapon.Reload();
             }
         }
     }

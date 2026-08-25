@@ -13,6 +13,8 @@ public class PlayerWeaponsSetup : MonoBehaviour
 
     public LaserWeapon laserWeapon;
 
+    public BoomerangWeapon boomerangWeapon;
+
     void Start()
     {
         if (weaponsHandler != null)
@@ -25,6 +27,8 @@ public class PlayerWeaponsSetup : MonoBehaviour
                 weaponsHandler.AddWeapon(fireballWeapon);
             if (laserWeapon != null)
                 weaponsHandler.AddWeapon(laserWeapon);
+            if (boomerangWeapon != null)
+                weaponsHandler.AddWeapon(boomerangWeapon);
         }
     }
 }

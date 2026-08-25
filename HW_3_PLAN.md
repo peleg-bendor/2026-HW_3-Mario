@@ -445,16 +445,31 @@ missing bounce and a missing kill until the checkbox itself was the thing that w
 fixed: the flight, the single bounce off a wall, phasing through and killing an enemy, and the
 fade-then-expire timeout all logged correctly in `GameLog.txt`.
 
-#### Step 3 — `BoomerangWeapon`, pickup and power-up `[ ]`
+#### Step 3 — `BoomerangWeapon`, pickup and power-up `[x]`
 
-Almost certainly `IReloadWeapon` rather than `IUseableWeapon`, since a boomerang that can be lost is a
-finite stock — the same reading that made the axe an `IReloadWeapon`. Catching only counts once the
-boomerang has left Mario's own collider at least once, the same spawn-overlap problem
-`ProjectileAxe.hasLanded` already solves for the axe. `AxePowerUp`'s dormant ambiguity bug — an
-unqualified `GetComponentInChildren<IReloadWeapon>()` lookup — gets the same typed-lookup fix
-`LaserPowerUp` and `FireFlowerPowerUp` already carry, since the boomerang becomes the second
-`IReloadWeapon` here. Several boomerangs can be on the map at once, the same as axes, so this step also
-adds `BoomerangCountManager` and a `Txt_Boomerangs` GUI object, mirroring `AxeCountManager`/`Txt_Axes`.
+`IReloadWeapon` rather than `IUseableWeapon`, since a boomerang that can be lost is a finite stock —
+the same reading that made the axe an `IReloadWeapon`. Starts at 0, unlike the axe's starting 1 — found
+in the level rather than held from the start. Catching gates on `hasTurnedAround`, reusing the flag the
+bounce logic already needs, the same spawn-overlap problem `ProjectileAxe.hasLanded` already solves for
+the axe. `AxePowerUp`'s dormant ambiguity bug — an unqualified `GetComponentInChildren<IReloadWeapon>()`
+lookup — got the same typed-lookup fix `LaserPowerUp` and `FireFlowerPowerUp` already carry, since the
+boomerang became the second `IReloadWeapon` here. Several boomerangs can be on the map at once, the same
+as axes, so this step also added `BoomerangCountManager` and a `Txt_Boomerangs` GUI object, mirroring
+`AxeCountManager`/`Txt_Axes`.
+
+One bug caught before it shipped: the new `BoomerangWeapon` child under `Sprite_Mario` defaulted to
+local position `(0, 0, 0)` from `Create Empty`, unlike `AxeWeapon`/`FireballWeapon`/`LaserWeapon`, which
+all sit at small offsets away from Mario's own pivot. Thrown from Mario's exact center, the boomerang
+spawned already overlapping the ground and hit `OnWallHit()` twice in the same instant - turned around,
+then immediately destroyed. Fixed by duplicating `AxeWeapon`'s Transform instead of guessing a new
+offset.
+
+**Confirmed working** via `GameLog.txt`: pickup collected, thrown, turned around, caught, and gained
+again, repeated across several separate throws in the same session, including one where the boomerang
+killed a `Sprite_Vampire` mid-flight (`Enemy destroyed: Sprite_Vampire`, logged by `IEnemy.Kill()`
+itself) and kept flying rather than stopping - the phase-through behavior working as designed, not just
+the flight and the bounce. One later throw also landed while already holding a second boomerang picked
+up separately, holding both at once without either overwriting the other's count.
 
 #### Step 4 — Tile id and playtest `[ ]`
 
@@ -636,8 +651,9 @@ _(append entries here as we make design decisions.)_
   wall changes its course, and only once: the first hit reverses it and flips its facing, the second
   destroys it. This replaced an earlier design where a fixed timer forced the turn and enemies did
   nothing at all to it, once Peleg reconsidered the timer-and-origin approach directly.
-- Catching a returning boomerang gates on having left Mario's own collider at least once, not on having
-  already bounced off a wall. The boomerang spawns inside Mario's own trigger, the same problem
-  `ProjectileAxe.hasLanded` already exists to solve for the axe, and gating on "already turned around"
-  would have solved the spawn problem too but for the wrong reason - there's no design reason catching
-  should require a bounce first.
+- Catching a returning boomerang gates on `hasTurnedAround`, not a separate "has it left Mario" flag -
+  reversed from the first version of this decision once `ProjectileAxe.OnCollisionEnter2D` turned out to
+  already solve the identical spawn-overlap problem this way: its own Player-tag pickup check is only
+  reachable once `hasLanded` is already true, not behind a flag invented for the purpose. Reusing the
+  flag the bounce logic already needs, the same way the axe reuses `hasLanded`, beat adding a second one
+  that would have solved the same problem for a different reason.
