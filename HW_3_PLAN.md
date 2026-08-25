@@ -349,7 +349,7 @@ test hook.
 
 Exercise item 3, Object Pooling.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
 Two things already known to need deciding:
 
@@ -407,29 +407,54 @@ The exercise asks for fired / taken from pool / hit / returned. This project log
 rather than calling `Debug.Log` directly, which satisfies the intent and is worth one sentence on
 camera rather than left looking like a missed requirement.
 
-### Stage 6 — Boomerang `[ ]`
+**Confirmed working**, `LaserWeapon` added to `Sprite_Mario.prefab` itself (not left as an unapplied
+scene override) and re-tested: the fire flower still equips the fireball rather than the laser, the
+laser gun still equips the laser, and cycling, firing, pool exhaustion and the return-to-pool log all
+matched `GameLog.txt` from the first playtest. Both weapons work side by side.
+
+### Stage 6 — Boomerang `[~]`
 
 Peleg's addition. No exercise item asks for it.
 
-A thrown weapon that flies sideways like the axe, turns around after about 3 seconds, and returns to
-the point it was thrown from — the point, not Mario. If it isn't caught by the time it gets back, it
-disappears, which is the whole difference from the axe: an axe waits on the ground to be reclaimed, a
-boomerang is lost if missed.
+A thrown weapon that flies sideways, phases through every enemy it kills rather than stopping at one,
+and turns around the first time it hits a wall. A second wall hit destroys it, and so does running out
+its own lifetime, the last three seconds of which fade the sprite as a warning — the same warning
+`ProjectileAxe` gives before its own timeout.
 
-Worth having beyond the fun of it: it is a genuine second or third implementer for Stage 1's
-`BaseProjectile`, which is what keeps that base class from being an abstraction built for one caller.
+`ProjectileBoomerang` stands outside `BaseProjectile` rather than inheriting it, on the same grounds
+that already kept the axe out: bouncing, fading, surviving a kill and being caught by Mario are steps
+the fireball, garlic and laser have no use for. It borrows the shape of both families — the axe's own
+`Update()`-driven fade, `BaseProjectile`'s impulse launch and trigger-based hit detection — without
+inheriting from either.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
-#### Step 2 — Sprite, prefabs and behavior `[ ]`
+#### Step 2 — `Boomerang.prefab` and `ProjectileBoomerang` `[x]`
 
-Two prefabs, matching the axe exactly: `Sprite_Boomerang.prefab` for the pickup that sits in the
-level, and `Boomerang.prefab` for the thing that gets thrown.
+Split from the single "prefabs and behavior" step originally planned here: `BoomerangPowerUp` has to
+reference `BoomerangWeapon` by type to compile, so the level pickup (`Sprite_Boomerang.prefab`,
+`BoomerangPickupController`) and the catch-on-touch behavior move into Step 3 alongside the weapon that
+gives them something to call — the same grouping Stage 5 used for `LaserGunController`/`LaserPowerUp`.
+This step is just the thrown prefab and its script, playtested standalone through a
+`[ContextMenu("Test Fire")]` hook, the same device `ProjectileLaser` used in Stage 1 before
+`LaserWeapon` existed.
 
-#### Step 3 — `BoomerangWeapon` `[ ]`
+Confirmed working after fixing a missed `Is Trigger` checkbox on the `Circle Collider 2D` — without it,
+the boomerang collided with walls and enemies physically instead of triggering, which looked like a
+missing bounce and a missing kill until the checkbox itself was the thing that was wrong. With it
+fixed: the flight, the single bounce off a wall, phasing through and killing an enemy, and the
+fade-then-expire timeout all logged correctly in `GameLog.txt`.
+
+#### Step 3 — `BoomerangWeapon`, pickup and power-up `[ ]`
 
 Almost certainly `IReloadWeapon` rather than `IUseableWeapon`, since a boomerang that can be lost is a
-finite stock — the same reading that made the axe an `IReloadWeapon`.
+finite stock — the same reading that made the axe an `IReloadWeapon`. Catching only counts once the
+boomerang has left Mario's own collider at least once, the same spawn-overlap problem
+`ProjectileAxe.hasLanded` already solves for the axe. `AxePowerUp`'s dormant ambiguity bug — an
+unqualified `GetComponentInChildren<IReloadWeapon>()` lookup — gets the same typed-lookup fix
+`LaserPowerUp` and `FireFlowerPowerUp` already carry, since the boomerang becomes the second
+`IReloadWeapon` here. Several boomerangs can be on the map at once, the same as axes, so this step also
+adds `BoomerangCountManager` and a `Txt_Boomerangs` GUI object, mirroring `AxeCountManager`/`Txt_Axes`.
 
 #### Step 4 — Tile id and playtest `[ ]`
 
@@ -597,3 +622,22 @@ _(append entries here as we make design decisions.)_
 - `ProjectileLaser` carries a `[ContextMenu("Test Fire")] TestFire()` calling `Fire(1f)`, so Stage 1's
   playtest doesn't need `LaserWeapon` to exist yet - drop the prefab in the scene, press Play, right-
   click the component to fire it. Worth reconsidering once Stage 5 gives it a real caller.
+- `ProjectileBoomerang` went through three rounds of reconsideration in Stage 6 Step 1 before landing
+  outside `BaseProjectile`. The first design (turn around after a fixed ~3 seconds, return to the exact
+  throw point) actually fit the base class's hooks cleanly, and came within one message of being built
+  that way. Peleg's own read - "this feels like its own thing" - held up once tested against the same
+  standard that already excluded the axe: does this projectile need steps the others have no use for.
+  The final design (phase through enemies, bounce once off a wall, destroy on the second hit or a flat
+  lifetime) fails that test on four counts at once - fading, bouncing, surviving a kill, and being
+  caught by Mario are all traits either unique to the boomerang or borrowed from the axe, not shared
+  with the fireball, garlic or laser. `ProjectileBoomerang` ended up a standalone class shaped like
+  `ProjectileAxe`, reusing the pattern of both families rather than the code of either.
+- Killing an enemy doesn't stop or redirect the boomerang - it phases through and keeps flying. Only a
+  wall changes its course, and only once: the first hit reverses it and flips its facing, the second
+  destroys it. This replaced an earlier design where a fixed timer forced the turn and enemies did
+  nothing at all to it, once Peleg reconsidered the timer-and-origin approach directly.
+- Catching a returning boomerang gates on having left Mario's own collider at least once, not on having
+  already bounced off a wall. The boomerang spawns inside Mario's own trigger, the same problem
+  `ProjectileAxe.hasLanded` already exists to solve for the axe, and gating on "already turned around"
+  would have solved the spawn problem too but for the wrong reason - there's no design reason catching
+  should require a bounce first.
