@@ -17,9 +17,10 @@ public class ProjectileLaser : BaseProjectile
     }
 
     // SetActive(false), not Destroy: this instance belongs to the pool and gets reused, not
-    // replaced.
+    // replaced. One log line covers a hit and a timeout alike - both end here, the same way.
     protected override void Expire()
     {
+        GameLog.Info(LogCategory.Projectile, "Laser returned to pool");
         gameObject.SetActive(false);
     }
 

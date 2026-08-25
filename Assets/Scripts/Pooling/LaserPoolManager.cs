@@ -59,7 +59,10 @@ public class LaserPoolManager : MonoBehaviour
         foreach (ProjectileLaser laser in pooledLasers)
         {
             if (!laser.gameObject.activeInHierarchy)
+            {
+                GameLog.Info(LogCategory.Projectile, "Laser taken from pool");
                 return laser;
+            }
         }
 
         return null;

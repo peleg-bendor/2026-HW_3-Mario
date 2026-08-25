@@ -11,16 +11,20 @@ public class PlayerWeaponsSetup : MonoBehaviour
 
     public AxeWeapon axeWeapon;
 
+    public LaserWeapon laserWeapon;
+
     void Start()
     {
         if (weaponsHandler != null)
         {
             // Registration order is selection order - the axe is index 0, so Mario starts
-            // holding the axe rather than the fireball he can't use yet.
+            // holding the axe rather than a weapon he can't use yet.
             if (axeWeapon != null)
                 weaponsHandler.AddWeapon(axeWeapon);
             if (fireballWeapon != null)
                 weaponsHandler.AddWeapon(fireballWeapon);
+            if (laserWeapon != null)
+                weaponsHandler.AddWeapon(laserWeapon);
         }
     }
 }

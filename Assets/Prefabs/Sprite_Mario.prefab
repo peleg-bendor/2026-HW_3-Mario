@@ -45,6 +45,50 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FireballWeapon
   projectile: {fileID: 6685130501241294565, guid: c470d5c61dda9e04e92dcb4b7f86bab8, type: 3}
+--- !u!1 &2806918206894079985
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7403108646895249637}
+  - component: {fileID: 5497260645772054497}
+  m_Layer: 0
+  m_Name: LaserWeapon
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7403108646895249637
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2806918206894079985}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1849777243749840491}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5497260645772054497
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2806918206894079985}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7814c39c2307ed44b930c908460b87dc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LaserWeapon
 --- !u!1 &2930992903631104634
 GameObject:
   m_ObjectHideFlags: 0
@@ -168,7 +212,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8853114117106542180}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 1, y: 3, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -176,6 +220,7 @@ Transform:
   - {fileID: 5017615859641294504}
   - {fileID: 7721760545930867128}
   - {fileID: 2406558160942606158}
+  - {fileID: 7403108646895249637}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6462249183868553907
@@ -329,6 +374,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerJump
   jumpSpeed: 10
   groundProbeDepth: 0.2
+  maxJumps: 2
 --- !u!114 &1443067248051821195
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -382,6 +428,7 @@ MonoBehaviour:
   weaponsHandler: {fileID: 8862726035188569024}
   fireballWeapon: {fileID: 5252002422463180648}
   axeWeapon: {fileID: 5595335233548201032}
+  laserWeapon: {fileID: 5497260645772054497}
 --- !u!114 &5097213179903124334
 MonoBehaviour:
   m_ObjectHideFlags: 0

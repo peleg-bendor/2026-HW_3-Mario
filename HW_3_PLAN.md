@@ -105,8 +105,16 @@ Runtime-only prefabs, no tile id and no `Sprite_` prefix: `LaserRay.prefab` (Sta
 **The crate collision, resolved in Stage 0.** `MarioTiles.tsx` held the crate from Exercise 2's video
 at Tiled id 16. Removing it through Tiled's own tileset panel didn't free that id back up — Tiled
 appends past the highest existing id rather than backfilling a gap — so the laser gun landed at
-tileset id 17 and the boomerang at 18, one higher each than this plan originally reserved. The Tile
-Roster above reflects the actual ids.
+tileset id 17 and the boomerang at 18 inside `MarioTiles.tsx` itself, one higher each than this plan
+originally reserved.
+
+**Two different numbers name the same tile, and only one of them belongs in `TilePrefabMap`.** Tiled
+exports a tile as `firstgid + tileset id`, and `Level01.tmx`'s one tileset declares `firstgid: 1` — so
+the gun and the boomerang come out as **18** and **19** in `Level01.txt` and everywhere else outside
+Tiled itself, one higher than the tileset ids named above. The Tile Roster table uses these exported
+ids, since that's what `TilePrefabMap` and `Level01.txt` actually contain - confirmed directly against
+`Level01.txt`, which holds `18` at the cell the gun was mistakenly stamped on. Tiled's own tileset
+panel will keep showing 17 and 18; that's not wrong, it's just a different number for the same tile.
 
 ### Stage 0 — Repo and project setup `[x]`
 
@@ -360,12 +368,12 @@ Two things already known to need deciding:
 
 #### Step 3 — Pool size and playtest `[x]`
 
-### Stage 5 — The weapon, the power-up and the integration `[ ]`
+### Stage 5 — The weapon, the power-up and the integration `[x]`
 
 The exercise's remaining three sections: the `LaserPowerUp` pickup, the firing rule, and wiring the
 whole thing into `WeaponsHandler` so Mario cannot fire a laser he hasn't earned.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
 **One problem is already known and has to be solved here.** `FireFlowerPowerUp` unlocks the fireball
 with `player.GetComponentInChildren<IUseableWeapon>()` — the *first* one it finds. That works today
@@ -379,21 +387,21 @@ fixed in the same stage that creates the second implementer. The options are wor
 in the discussion — a typed lookup, a per-weapon identifier, or splitting the interface — because
 whichever is chosen changes a class two exercises have already been graded on.
 
-#### Step 2 — `LaserWeapon` `[ ]`
+#### Step 2 — `LaserWeapon` `[x]`
 
-#### Step 3 — `LaserPowerUp` and `LaserGunController` `[ ]`
+#### Step 3 — `LaserPowerUp` and `LaserGunController` `[x]`
 
 The pickup pair follows the shape every pickup in this project already uses: a controller that detects
 Mario and hands over an `IPowerUp`, and a power-up that applies the effect without knowing who
 collected it.
 
-#### Step 4 — Registration and the tile `[ ]`
+#### Step 4 — Registration and the tile `[x]`
 
 `PlayerWeaponsSetup` gains the laser. `TilePrefabMap` gains row 18 for `Sprite_LaserGun`. Q cycles
 axe, fireball, laser — with the laser skipped until it is unlocked, which `IsAvailable()` already
 handles for free.
 
-#### Step 5 — Logging `[ ]`
+#### Step 5 — Logging `[x]`
 
 The exercise asks for fired / taken from pool / hit / returned. This project logs through `GameLog`
 rather than calling `Debug.Log` directly, which satisfies the intent and is worth one sentence on
@@ -568,6 +576,21 @@ _(append entries here as we make design decisions.)_
 - The pool's exhaustion isn't logged by `LaserPoolManager` itself - `GetPooledLaser()` returning `null`
   is a complete answer on its own. The `<action> ignored - <reason>` line belongs to `LaserWeapon` in
   Stage 5, the class that actually owns the decision being ignored.
+- The `IUseableWeapon` ambiguity is fixed by typed concrete lookup: `FireFlowerPowerUp` and
+  `LaserPowerUp` each look up their own weapon class directly (`FireballWeapon`, `LaserWeapon`) rather
+  than the shared interface. The original DIP reasoning in `FireFlowerPowerUp`'s comment never had a
+  real substitutability need behind it - a Fire Flower has only ever meant "unlock the fireball,"
+  never "unlock whatever useable weapon happens to exist first" - so the interface lookup wasn't
+  protecting against a real second case, it was what let the ambiguity slip in unnoticed.
+  `IUseableWeapon` stays fully justified where real substitution happens: `WeaponsHandler`'s
+  `List<IWeapon>`. `AxePowerUp` has the identical dormant bug (`GetComponentInChildren<IReloadWeapon>`)
+  and will need the same fix once Stage 6's boomerang becomes a second `IReloadWeapon` - not touched
+  now, since nothing is broken yet.
+- Logging for "hit" and "returned" is one line, not two: `ProjectileLaser.Expire()` logs once,
+  covering both causes uniformly, since every hit ends in a return and there's no other way a pooled
+  laser stops. `LaserPoolManager.GetPooledLaser()` logs "taken from pool" on a successful hand-out;
+  `LaserWeapon.Attack()` logs "fired." Three log lines for four exercise-named events, on the reading
+  that "hits" and "is returned" describe the same transition from two angles rather than two events.
 - `Sprite_LaserRay.png` draws its beam as a horizontal bar in a 48x48 canvas, even though the laser
   always fires straight up. `LaserRay.prefab`'s own Transform gets a 90-degree Z rotation to make the
   art read as vertical, rather than redrawing the sprite or rotating anything in code.

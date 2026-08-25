@@ -1,17 +1,18 @@
 using UnityEngine;
 
-// Unlocks Mario's fireball. Looks up IUseableWeapon rather than FireballWeapon itself, so
-// this knows only that something on Mario can be unlocked, not which weapon it is.
+// Unlocks Mario's fireball. Looks up FireballWeapon directly rather than IUseableWeapon -
+// unqualified, that lookup returns whichever useable weapon Unity enumerates first, and there
+// are two now.
 public class FireFlowerPowerUp : IPowerUp
 {
     public void ApplyPowerUp(GameObject player)
     {
         if(player != null)
         {
-            IUseableWeapon useableWeapon = player.GetComponentInChildren<IUseableWeapon>();
-            if(useableWeapon != null)
+            FireballWeapon fireballWeapon = player.GetComponentInChildren<FireballWeapon>();
+            if(fireballWeapon != null)
             {
-                useableWeapon.Equip();
+                fireballWeapon.Equip();
             }
         }
     }
