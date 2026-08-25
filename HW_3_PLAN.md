@@ -96,21 +96,19 @@ pickup exactly the way `Axe.prefab` is separate from `Sprite_Axe.prefab`.
 | `TilePrefabMap` id | Unity prefab              | Stage |
 | ------------------ | ------------------------- | ----- |
 | 1-16               | unchanged from Exercise 2 |       |
-| 17                 | `Sprite_LaserGun`         | 5     |
-| 18                 | `Sprite_Boomerang`        | 6     |
+| 18                 | `Sprite_LaserGun`         | 5     |
+| 19                 | `Sprite_Boomerang`        | 6     |
 
 Runtime-only prefabs, no tile id and no `Sprite_` prefix: `LaserRay.prefab` (Stage 1),
 `Boomerang.prefab` (Stage 6).
 
-**A collision to resolve before either id is assigned.** `MarioTiles.tsx` still holds the crate from
-Exercise 2's video at Tiled id 16, which maps to `TilePrefabMap` id 17 — the id the laser gun wants.
-The crate was a throwaway; its prefab and its mapping row were deleted after the take, but the Tiled
-tileset entry was never removed, because `Tiles01/` is in no git repo and nothing read it again.
-`Level01.tmx` also still places one crate at (12, 3). Neither costs anything today, since the plan is
-to place the new pickups with the Tile Placer rather than re-export from Tiled — but the moment
-anyone exports, every crate cell becomes a laser gun. Settle it in Stage 0.
+**The crate collision, resolved in Stage 0.** `MarioTiles.tsx` held the crate from Exercise 2's video
+at Tiled id 16. Removing it through Tiled's own tileset panel didn't free that id back up — Tiled
+appends past the highest existing id rather than backfilling a gap — so the laser gun landed at
+tileset id 17 and the boomerang at 18, one higher each than this plan originally reserved. The Tile
+Roster above reflects the actual ids.
 
-### Stage 0 — Repo and project setup `[ ]`
+### Stage 0 — Repo and project setup `[x]`
 
 Getting `2026-HW_3-Mario` from "a copied folder that runs" to "a versioned project with a clean
 starting commit."
@@ -183,27 +181,38 @@ Three things are wrong with `Tiles01/` as it stands, and one of them is dangerou
 - **`Level01.tmx` is two cells behind `Level01.txt`**: that crate at (12, 3), and a coin at (24, 4)
   the Tile Placer added on camera which never travelled back.
 
-The order that resolves all three: repoint the export target, delete the crate from the tileset and
-from the map, regenerate the map's `<data>` block from `Level01.txt` the way Exercise 2's Stage 5
-Step 3 did it, add `Sprite_LaserGun` and `Sprite_Boomerang` through `Tileset > Add Tiles` one at a
-time so they take ids 16 and 17, then Export, Build Level, Save Level, and check the file round-trips
-unchanged.
+**What actually happened, in order:** the export target got repointed first, as planned. The crate
+came out of the tileset and off the map cleanly. Adding the gun through `Tileset > Add Tiles` landed
+it at id 17 rather than the hoped-for 16 (Tiled appends past the highest id rather than reusing a
+freed one), and that same pass also stamped it onto the map at (1, 16), overwriting an axe pickup
+that was already there — not something this step called for, caught only after an Export had already
+carried it into `Assets/Levels/Level01.txt`. Rebuilding the level from that file before the mistake
+was caught baked the loss in a second way: `LevelWindow` skips any tile id it has no mapping for yet,
+so the cell built as empty rather than as axe or gun, and Save Level then wrote that emptiness back
+out. Per Peleg: leave it. The cell resolves into an actual laser gun once `TilePrefabMap` gets a row
+for id 18 and it gets placed properly with the Tile Placer, so nothing further is owed here. The
+boomerang went in afterward without repeating the mistake, landing at id 18 with no map placement.
 
-That leaves Tiled holding the current level with both new tile types in it, `TilePrefabMap` ids 17
-and 18 free for them, and nothing left over from the previous exercise anywhere in the pipeline.
+One other loss from the same window, unrelated to the gun: `Level01.tmx`'s missing coin (the one Tile
+Placer had added on camera, never present in Tiled) never got carried back into `Level01.txt` before
+the Export overwrote it, so that coin is also gone from the level. Per Peleg: also fine to leave.
+
+That leaves Tiled holding the current level with both new tile types registered, `TilePrefabMap` ids
+18 and 19 free for them, and nothing left over from the previous exercise anywhere in the pipeline —
+at the cost of one axe and one coin pickup that Exercise 2's copy had and this level no longer does.
 
 #### Step 6 — Git `[x]`
 
 `git init` and an initial commit, so history starts from a working, cleaned-up state. The remote is
 the same open question Exercise 2 had; see that plan's Stage 0 Step 3 for how it was settled.
 
-### Stage 0.5 — Inherited-code cleanup `[ ]`
+### Stage 0.5 — Inherited-code cleanup `[x]`
 
 Carried over from Exercise 2's parked Stage 11, minus everything dropped there.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
-#### Step 2 — The coin counter as MVC `[ ]`
+#### Step 2 — The coin counter as MVC `[x]`
 
 `SC_CoinsManager` is the last class in the project that both owns a count and draws it. Health, axes
 and the selected weapon all split those jobs already, so it is the odd one out regardless of MVC, and
@@ -220,6 +229,20 @@ No exercise item asks for it. Whether it gets any video time is a Stage 8 decisi
 
 **Dropped, per Peleg:** the fade on the disappearing tile. Purely cosmetic, and the tile has already
 been demonstrated working on camera.
+
+**Built smaller than `IHealthModel`, not a straight copy of it.** `IHealthModel.Gain()`/`Lose()`
+return `bool` because health has real ignored cases - capped at max, floored at zero. Coins have
+neither: every pickup increments, unconditionally, forever. `ICoinsModel.Gain()` returns `void`
+rather than carrying a return value that would never be `false`.
+
+**`CoinsView` is its own GameObject under `Scripts`, not a component on `Txt_Coins`.** The exact
+mistake Exercise 2's Stage 2 caught and corrected for `HealthView` - `CONVENTIONS.md`'s hierarchy
+rule puts logic-only manager objects in `Scripts` and GUI objects under `Canvas`, and a View script
+is logic even when what it touches is a label.
+
+**Confirmed working** via `GameLog.txt`: twelve straight `Coin collected: <name>` / `Coin collected -
+N total` pairs, counting cleanly through a fire flower, two speed boosts, and a hazard hit and
+respawn with no reset or duplicate.
 
 ### Stage 1 — `BaseProjectile` and `ProjectileLaser` `[ ]`
 
@@ -353,9 +376,9 @@ collected it.
 
 #### Step 4 — Registration and the tile `[ ]`
 
-`PlayerWeaponsSetup` gains the laser. `TilePrefabMap` gains row 17 for `Sprite_LaserGun`, subject to
-Stage 0's crate-id decision. Q cycles axe, fireball, laser — with the laser skipped until it is
-unlocked, which `IsAvailable()` already handles for free.
+`PlayerWeaponsSetup` gains the laser. `TilePrefabMap` gains row 18 for `Sprite_LaserGun`. Q cycles
+axe, fireball, laser — with the laser skipped until it is unlocked, which `IsAvailable()` already
+handles for free.
 
 #### Step 5 — Logging `[ ]`
 
@@ -458,3 +481,22 @@ _(append entries here as we make design decisions.)_
   stores everything normalized and the 46/17 split never existed in this repo's history. This is the
   cheapest the fix will ever be, which is the argument for doing it now rather than parking it a
   third time.
+- Tiled does not reuse a freed tile id - deleting the crate at id 16 didn't hand that id to the next
+  tile added, it just appended past the highest one left. The laser gun and boomerang landed at ids
+  17 and 18 instead of the 16 and 17 this plan originally reserved, which shifts every `TilePrefabMap`
+  row this stage's Tile Roster promised by one. Updated in place rather than fought - chasing a
+  specific id through a tool that doesn't guarantee one costs more than a table edit.
+- One axe and one coin pickup are gone from `Level01.txt` and won't be coming back on their own, per
+  Peleg. The axe was overwritten by a misplaced gun tile during Step 5's Tiled work, then built as
+  empty (not axe, not gun) because `LevelWindow` skips ids `TilePrefabMap` doesn't know yet, and that
+  emptiness got saved back out before it was caught. The coin was a Tile Placer addition that had
+  never made it into `Level01.tmx`, lost the same way when Tiled's Export overwrote the file. Both
+  are accepted losses rather than restorations - the gun cell resolves itself once `TilePrefabMap`
+  gets a row for id 18 and the Tile Placer puts a real gun there, and the coin isn't worth a special
+  trip back through Tiled for one cell.
+- Stage 0.5's `ICoinsModel` is not a copy of `IHealthModel` - it's smaller by design. Health's
+  `Gain()`/`Lose()` return `bool` because there are real ignored cases, capped at max and floored at
+  zero. Coins have neither, so `Gain()` returns nothing rather than a value that could never be
+  `false`. `CoinsView` also went on its own GameObject under `Scripts` rather than on `Txt_Coins`
+  directly - the same placement Exercise 2's Stage 2 got wrong once already for `HealthView` and had
+  to correct.

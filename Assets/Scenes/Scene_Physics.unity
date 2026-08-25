@@ -3035,6 +3035,7 @@ Transform:
   - {fileID: 1296836060}
   - {fileID: 73917765}
   - {fileID: 1834816351}
+  - {fileID: 1427395497}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &362593862
@@ -7687,7 +7688,7 @@ GameObject:
   - component: {fileID: 904920109}
   - component: {fileID: 904920110}
   m_Layer: 0
-  m_Name: SC_CoinsManager
+  m_Name: CoinsController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7720,7 +7721,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1fb1cf0aa07ce594c94a84f807cec148, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  coinsText: {fileID: 1744531115}
+  coinsView: {fileID: 1427395498}
 --- !u!1001 &918230102
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -12400,6 +12401,51 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5467311013064111145, guid: 7658296e42991b348a20b02c6e24bd34, type: 3}
   m_PrefabInstance: {fileID: 1420825158}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1427395496
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1427395497}
+  - component: {fileID: 1427395498}
+  m_Layer: 0
+  m_Name: CoinView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1427395497
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427395496}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 359280866}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1427395498
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1427395496}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7956ff03ff962b94aa04c5f0413a3d95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CoinsView
+  coinsText: {fileID: 1744531115}
 --- !u!1001 &1445239127
 PrefabInstance:
   m_ObjectHideFlags: 0
