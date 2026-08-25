@@ -157,7 +157,7 @@ CircleCollider2D:
   m_CompositeOperation: 0
   m_CompositeOrder: 0
   m_Offset: {x: 0, y: 0}
-  m_Radius: 0.45
+  m_Radius: 0.3
 --- !u!114 &6114556154703769315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -171,5 +171,5 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ProjectileBoomerang
   speed: 8
-  lifetime: 6
+  lifetime: 8
   warningDuration: 3

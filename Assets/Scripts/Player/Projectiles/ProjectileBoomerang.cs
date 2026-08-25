@@ -24,6 +24,12 @@ public class ProjectileBoomerang : MonoBehaviour
     // would otherwise catch itself the instant it's thrown.
     private bool hasTurnedAround = false;
 
+	// The frame OnWallHit last ran. Reversing velocity from inside a trigger callback can leave
+    // the boomerang still touching the same collider for a moment, firing OnTriggerEnter2D a
+    // second time before it's actually moved - without this, that reads as a second, later hit.
+    private int wallHitFrame = -1;
+
+
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -53,7 +59,7 @@ public class ProjectileBoomerang : MonoBehaviour
         }
 
         if (age >= lifetime)
-            Lose();
+            Lose("lifetime ran out");
     }
 
     public void Fire(float direction)
@@ -83,21 +89,25 @@ public class ProjectileBoomerang : MonoBehaviour
         }
 
         if (other.GetComponent<SC_Floor>() != null)
-            OnWallHit();
+            OnWallHit(other.gameObject);
     }
 
-    private void OnWallHit()
+    private void OnWallHit(GameObject wall)
     {
+        if (Time.frameCount == wallHitFrame)
+            return;
+        wallHitFrame = Time.frameCount;
+
         if (!hasTurnedAround)
         {
             hasTurnedAround = true;
             rb.linearVelocity = -rb.linearVelocity;
             transform.localScale = new Vector3(-transform.localScale.x, transform.localScale.y, transform.localScale.z);
-            GameLog.Info(LogCategory.Projectile, "Boomerang turned around");
+            GameLog.Info(LogCategory.Projectile, "Boomerang turned around - hit " + wall.name);
         }
         else
         {
-            Lose();
+            Lose("hit a second wall (" + wall.name + ")");
         }
     }
 
@@ -110,9 +120,9 @@ public class ProjectileBoomerang : MonoBehaviour
         Destroy(gameObject);
     }
 
-    private void Lose()
+    private void Lose(string reason)
     {
-        GameLog.Info(LogCategory.Projectile, "Boomerang lost");
+        GameLog.Info(LogCategory.Projectile, "Boomerang lost - " + reason);
         Destroy(gameObject);
     }
 

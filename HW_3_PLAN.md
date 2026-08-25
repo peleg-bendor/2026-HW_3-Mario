@@ -412,7 +412,7 @@ scene override) and re-tested: the fire flower still equips the fireball rather 
 laser gun still equips the laser, and cycling, firing, pool exhaustion and the return-to-pool log all
 matched `GameLog.txt` from the first playtest. Both weapons work side by side.
 
-### Stage 6 — Boomerang `[~]`
+### Stage 6 — Boomerang `[x]`
 
 Peleg's addition. No exercise item asks for it.
 
@@ -471,7 +471,25 @@ itself) and kept flying rather than stopping - the phase-through behavior workin
 the flight and the bounce. One later throw also landed while already holding a second boomerang picked
 up separately, holding both at once without either overwriting the other's count.
 
-#### Step 4 — Tile id and playtest `[ ]`
+#### Step 4 — Tile id and playtest `[x]`
+
+`TilePrefabMap` gained row 19 for `Sprite_Boomerang`, placed with the Tile Placer.
+
+One more bug found in this playtest, worse than the first: a boomerang thrown across a real gap turned
+around at the far wall and was destroyed in the same instant, with no visible return flight at all.
+Ruled out two terrain explanations directly rather than guess - checked `Boomerang.prefab` and
+`Sprite_Floor.prefab` for a duplicate collider (one each, clean), and checked the Hierarchy under
+`World` for two `Sprite_Floor` tiles stacked at the same position (only one there). Left standing:
+`OnTriggerEnter2D` firing twice for the same single collider in the same frame, most likely because
+reversing `rb.linearVelocity` from inside the trigger callback that detected the hit leaves the
+boomerang still touching that collider before it's had a chance to move away - not a fully certain
+mechanical explanation, but a well-evidenced one once both terrain theories were ruled out. Fixed the
+same way `DisappearingFloor`/`MovingFloor` already guard an identical same-frame-multiple-callback
+shape: a `wallHitFrame` field checked against `Time.frameCount`, so only the first wall transition in a
+given frame is processed.
+
+**Confirmed working**: a boomerang thrown across a real gap now turns around once and actually flies
+back, rather than dying at the wall it just bounced off.
 
 ### Stage 7 — Full playthrough `[ ]`
 
