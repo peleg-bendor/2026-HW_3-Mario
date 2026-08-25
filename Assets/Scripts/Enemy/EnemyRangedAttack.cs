@@ -51,7 +51,7 @@ public class EnemyRangedAttack : MonoBehaviour
 
         ProjectileGarlic garlic = projectileObject.GetComponent<ProjectileGarlic>();
         if (garlic != null)
-            garlic.Attack(directionValue);
+            garlic.Fire(directionValue);
 
         GameLog.Verbose(LogCategory.Enemy, "Enemy fired a projectile: " + gameObject.name + " (" + (directionValue < 0 ? "left" : "right") + ")");
 

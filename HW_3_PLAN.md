@@ -244,12 +244,12 @@ is logic even when what it touches is a label.
 N total` pairs, counting cleanly through a fire flower, two speed boosts, and a hazard hit and
 respawn with no reset or duplicate.
 
-### Stage 1 — `BaseProjectile` and `ProjectileLaser` `[ ]`
+### Stage 1 — `BaseProjectile` and `ProjectileLaser` `[x]`
 
 Exercise item 4, the Template pattern. Built first, because everything else in the exercise builds,
 makes or pools the thing this stage creates.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
 What this stage has to settle, none of it decided yet:
 
@@ -276,16 +276,20 @@ What this stage has to settle, none of it decided yet:
 - **Whether the axe and the garlic join.** Probably not. The axe lands, freezes and is recollectable;
   the garlic is enemy-fired. Both would bend the template rather than fit it.
 
-#### Step 2 — `BaseProjectile` `[ ]`
+#### Step 2 — `BaseProjectile` `[x]`
 
-#### Step 3 — `ProjectileLaser` `[ ]`
+#### Step 3 — `ProjectileLaser` `[x]`
 
-Straight up, and the firing rule from the exercise lives here rather than in the weapon. Peleg's
-reading, to be confirmed in Step 1: it passes through tiles and pickups, stops at enemies, and expires
-after about 3 seconds either way. Both endings return it to the pool rather than destroying it, which
-is Stage 4's requirement reaching back into this class.
+Straight up, and the firing rule from the exercise lives here rather than in the weapon: it passes
+through tiles and pickups, stops at enemies, and expires after about 3 seconds either way. Confirmed
+in Step 1: hitting an enemy reuses `BaseProjectile`'s default `TryHandleTarget` unmodified, straight-up
+launch overrides `GetLaunchImpulse`, and passing through terrain overrides `OnTerrainHit` with an empty
+body. Returning to the pool instead of destroying is Stage 4's override of `Expire()`, not written yet.
 
-#### Step 4 — Sprite, prefab and playtest `[ ]`
+#### Step 4 — Sprite, prefab and playtest `[x]`
+
+Confirmed via `GameLog.txt`: no `No Rigidbody2D found` warning, and `Enemy destroyed: Sprite_Vampire`
+showing the laser's kill going through cleanly.
 
 `LaserRay.prefab`, with no `Sprite_` prefix, since nothing ever places it in a level.
 
@@ -500,3 +504,29 @@ _(append entries here as we make design decisions.)_
   `false`. `CoinsView` also went on its own GameObject under `Scripts` rather than on `Txt_Coins`
   directly - the same placement Exercise 2's Stage 2 got wrong once already for `HealthView` and had
   to correct.
+- `BaseProjectile` is inherited by `ProjectileGarlic` too, alongside the fireball and the laser,
+  settled in Stage 1 Step 1. It was nearly free: the garlic's launch, its lifetime and its wall-stop
+  are the fireball's own code duplicated verbatim, and it has exactly one call site
+  (`EnemyRangedAttack.cs`), the same cost the fireball's own retrofit already carries. Enemy-fired
+  rather than Mario-fired was never a dimension `BaseProjectile` cares about - it governs how a
+  projectile flies and dies, not who fired it.
+- `Fire(float direction)` is the template method itself, not something a subclass overrides. Its
+  fixed sequence: cancel any leftover timer, set facing, apply `GetLaunchImpulse(direction)` as an
+  impulse, start the lifetime timer. `GetLaunchImpulse` and `Expire` are virtual with a shared
+  default (a sideways impulse; `Destroy`); `TryHandleTarget` is virtual with a shared default (kill
+  an `IEnemy` and expire), overridden only by the garlic, whose target is Mario rather than an enemy.
+  `OnTerrainHit` is abstract rather than virtual - what happens at a wall is a class-specific log
+  message for the fireball and the garlic, and nothing at all for the laser passing through, so no
+  shared default was worth writing.
+- The lifetime timer moved from `Destroy(gameObject, lifetime)` to `Invoke(nameof(Expire), lifetime)`,
+  so both the timeout path and the trigger-hit path funnel through the one `Expire()` hook - the same
+  hook Stage 4 overrides to `SetActive(false)` for the laser instead of destroying it.
+- `ProjectileLaser.Expire()` isn't written in Stage 1 and doesn't need to be: there's no pool yet to
+  return it to, so it inherits `BaseProjectile`'s `Destroy()` default unmodified like everything else.
+  Stage 4 is where it gets its own override, and the comment explaining why belongs there, not here.
+- `Sprite_LaserRay.png` draws its beam as a horizontal bar in a 48x48 canvas, even though the laser
+  always fires straight up. `LaserRay.prefab`'s own Transform gets a 90-degree Z rotation to make the
+  art read as vertical, rather than redrawing the sprite or rotating anything in code.
+- `ProjectileLaser` carries a `[ContextMenu("Test Fire")] TestFire()` calling `Fire(1f)`, so Stage 1's
+  playtest doesn't need `LaserWeapon` to exist yet - drop the prefab in the scene, press Play, right-
+  click the component to fire it. Worth reconsidering once Stage 5 gives it a real caller.

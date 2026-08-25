@@ -1,47 +1,13 @@
 using UnityEngine;
 
 // One fireball in flight. Kills the first enemy it passes through and stops at the first wall,
-// then destroys itself either way.
-public class ProjectileFireball : MonoBehaviour
+// then destroys itself either way. The launch, the lifetime and the target-or-wall split all
+// live in BaseProjectile; this class only supplies what makes a fireball a fireball.
+public class ProjectileFireball : BaseProjectile
 {
-    public float speed = 5f;
-    public float lifetime = 3f;
-
-    private Rigidbody2D rb;
-
-    void Awake()
+    protected override void OnTerrainHit()
     {
-        rb = GetComponent<Rigidbody2D>();
-    }
-
-    public void Attack(float direction)
-    {
-        if(rb != null)
-        {
-            transform.localScale = new Vector3(direction, 1, 1);
-            // Impulse, not Force: a one-shot push has to be applied as one, or only a single
-            // physics step's worth of it ever becomes velocity.
-            rb.AddForce(new Vector2(direction * speed, 0), ForceMode2D.Impulse);
-            Destroy(gameObject, lifetime);
-        }
-    }
-
-    void OnTriggerEnter2D(Collider2D other)
-    {
-        IEnemy enemy = other.GetComponent<IEnemy>();
-        if (enemy != null)
-        {
-            enemy.Kill();
-            Destroy(gameObject);
-            return;
-        }
-
-        // An allowlist rather than "stop at anything unrecognised": SC_Floor is what marks a
-        // tile as a tile, so coins, pickups and Mario himself are flown through untouched.
-        if (other.GetComponent<SC_Floor>() != null)
-        {
-            GameLog.Verbose(LogCategory.Projectile, "Fireball hit a wall");
-            Destroy(gameObject);
-        }
+        GameLog.Verbose(LogCategory.Projectile, "Fireball hit a wall");
+        Expire();
     }
 }

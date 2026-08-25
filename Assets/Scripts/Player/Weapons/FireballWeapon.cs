@@ -19,7 +19,7 @@ public class FireballWeapon : MonoBehaviour, IUseableWeapon
                 float direction = 1;
                 if(transform.parent != null)
                     direction = transform.parent.localScale.x;
-                scProjectile.Attack(direction);
+                scProjectile.Fire(direction);
             }
             GameLog.Info(LogCategory.Weapon, "Fireball shot");
         }
