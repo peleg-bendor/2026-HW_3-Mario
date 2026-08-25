@@ -8,6 +8,10 @@ public abstract class BaseProjectile : MonoBehaviour
     public float speed = 5f;
     public float lifetime = 3f;
 
+    // A uniform scale multiplier, applied in Fire(). Left at 1 unless something builds this
+    // projectile with a different size.
+    public float size = 1f;
+
     protected Rigidbody2D rb;
 
     protected virtual void Awake()
@@ -27,7 +31,12 @@ public abstract class BaseProjectile : MonoBehaviour
         // old Expire() land partway through its new one.
         CancelInvoke(nameof(Expire));
 
-        transform.localScale = new Vector3(direction, 1, 1);
+        // Clears any velocity left over from a previous life too, so a reused projectile's new
+        // impulse doesn't stack on top of however fast it was already moving when it expired.
+        rb.linearVelocity = Vector2.zero;
+
+        // direction carries the sign for facing; size scales both axes uniformly.
+        transform.localScale = new Vector3(direction * size, size, 1f);
         // Impulse, not Force: a one-shot push has to be applied as one, or only a single
         // physics step's worth of it ever becomes velocity.
         rb.AddForce(GetLaunchImpulse(direction), ForceMode2D.Impulse);

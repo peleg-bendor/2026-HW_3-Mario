@@ -72,8 +72,8 @@ runtime don't.
 The legacy `SC_` prefix stays on the scripts that already carry it. New scripts don't use it.
 
 Scripts are grouped by category under `Assets/Scripts/`: `Player/` with `Pickable/`, `PowerUps/`,
-`Projectiles/` and `Weapons/` beneath it, plus `Enemy/`, `Tiles/`, `Interfaces/`, `Extensions/` and
-`Editor/`. Scene-level managers and GUI scripts sit at the root of `Scripts/`.
+`Projectiles/` and `Weapons/` beneath it, plus `Enemy/`, `Tiles/`, `Interfaces/`, `Extensions/`,
+`Editor/`, `Builder/`, `Factory/` and `Pooling/`. Scene-level managers and GUI scripts sit at the root of `Scripts/`.
 
 In the Hierarchy, `Scripts` holds logic-only manager objects, `World` holds Mario and every tile,
 pickup and hazard as flat direct children, and `Canvas` sits at the root as a sibling holding the

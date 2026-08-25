@@ -16,6 +16,13 @@ public class ProjectileLaser : BaseProjectile
     {
     }
 
+    // SetActive(false), not Destroy: this instance belongs to the pool and gets reused, not
+    // replaced.
+    protected override void Expire()
+    {
+        gameObject.SetActive(false);
+    }
+
     // Fires a laser dropped straight into the scene, with no weapon wired up yet to do it for you.
     [ContextMenu("Test Fire")]
     private void TestFire()

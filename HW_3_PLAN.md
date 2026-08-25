@@ -293,11 +293,11 @@ showing the laser's kill going through cleanly.
 
 `LaserRay.prefab`, with no `Sprite_` prefix, since nothing ever places it in a level.
 
-### Stage 2 — `LaserBuilder` and `LaserDirector` `[ ]`
+### Stage 2 — `LaserBuilder` and `LaserDirector` `[x]`
 
 Exercise item 1, the Builder pattern.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
 The open question: **the exercise names speed, animation, size and damage as the things the builder
 sets, and this game has only two of them.** No projectile has an animation system, and there is no
@@ -310,11 +310,15 @@ The likely answer, to be settled: build speed, lifetime and size; say on camera 
 animation describe systems this game does not have; and let the sentence do the work the invented code
 would have done badly. Same call and the same reasoning as Exercise 2's missing PNG.
 
-#### Step 2 — `ILaserBuilder` and `LaserBuilder` `[ ]`
+#### Step 2 — `ILaserBuilder` and `LaserBuilder` `[x]`
 
-#### Step 3 — `LaserDirector` `[ ]`
+#### Step 3 — `LaserDirector` `[x]`
 
-### Stage 3 — `LaserFactory` `[ ]`
+No dedicated playtest step: Builder and Director have no independently visible behavior until
+something calls `ConstructLaser()` and `Build()` together, which happens for real once
+`LaserFactory` exists in Stage 3.
+
+### Stage 3 — `LaserFactory` `[x]`
 
 Exercise item 2, the Factory pattern. Returns a ready laser using the builder, so the pool never
 learns the construction steps.
@@ -324,11 +328,16 @@ Worth knowing before the discussion: the lesson's own project does **not** do th
 anywhere; Lesson 10 adds a Factory for enemies instead, unconnected to the pool. Exercise 3 asks for
 the two to be stacked, which is a layering the course material never demonstrates together.
 
-#### Step 1 — Design discussion `[ ]`
+#### Step 1 — Design discussion `[x]`
 
-#### Step 2 — `LaserFactory` `[ ]`
+#### Step 2 — `LaserFactory` `[x]`
 
-### Stage 4 — `LaserPoolManager` `[ ]`
+No dedicated playtest step: `CreateLaser()` is the first point where the builder and director
+actually run together, but Stage 4's pool is next and exercises this exact call path for real
+gameplay, so confirming it at runtime is deferred there rather than building a second throwaway
+test hook.
+
+### Stage 4 — `LaserPoolManager` `[x]`
 
 Exercise item 3, Object Pooling.
 
@@ -347,9 +356,9 @@ Two things already known to need deciding:
   consequence of a fixed pool rather than the point of one, but it is the part a player actually
   feels, so it should say so.
 
-#### Step 2 — `LaserPoolManager` `[ ]`
+#### Step 2 — `LaserPoolManager` `[x]`
 
-#### Step 3 — Pool size and playtest `[ ]`
+#### Step 3 — Pool size and playtest `[x]`
 
 ### Stage 5 — The weapon, the power-up and the integration `[ ]`
 
@@ -524,6 +533,41 @@ _(append entries here as we make design decisions.)_
 - `ProjectileLaser.Expire()` isn't written in Stage 1 and doesn't need to be: there's no pool yet to
   return it to, so it inherits `BaseProjectile`'s `Destroy()` default unmodified like everything else.
   Stage 4 is where it gets its own override, and the comment explaining why belongs there, not here.
+- `LaserBuilder`'s setters take real parameters (`SetSpeed(float)`, `SetLifetime(float)`,
+  `SetSize(float)`), unlike Lesson 9's `FireballBuilder`, whose setters take none - the values are
+  hardcoded inside the concrete builder itself, a weakness the lesson's own material names directly.
+  The fix moves the actual recipe up to `LaserDirector.ConstructLaser()`, which takes no parameters of
+  its own and calls the builder with fixed values (speed 5, lifetime 3, size 1 - the same numbers
+  Stage 1's playtest already confirmed working), rather than leaving the builder to hardcode them.
+- `size` was added to `BaseProjectile`, not just `ProjectileLaser`, defaulting to 1. `Fire()`'s facing
+  step resets `transform.localScale` unconditionally, and it always runs after `Build()` on anything a
+  builder constructs, so a configured size would be wiped the moment the laser actually fires unless
+  `Fire()` itself accounts for it. Defaulting to 1 leaves the fireball and the garlic unaffected.
+- `Assets/Scripts/Builder/` is a new top-level folder, matching Lesson 9's own structure rather than
+  fitting the builder into `Player/Weapons/` where it doesn't belong - it constructs a weapon's
+  projectile, it isn't one. `Factory/` and `Pooling/` will join it the same way in Stages 3 and 4, not
+  before. `CONVENTIONS.md`'s script-category list is updated to include it.
+- `LaserFactory` is one concrete class, not a full Factory Method hierarchy - unlike Lesson 10's
+  `MarioEnemyFactory`/`GoombaFactory`/`KoopaFactory`, which needs an abstract Creator because it has
+  two concrete products to swap between. There's exactly one kind of laser, and the exercise's own
+  submission list names only `LaserFactory.cs` for this item, no interface. `CreateLaser(GameObject
+  prefab)` returns `ProjectileLaser`, not `GameObject` - fixing the exact weakness Lesson 10's own
+  material names in itself, where returning `GameObject` forces every caller back through
+  `GetComponent`. The factory builds its own `LaserBuilder`/`LaserDirector` internally rather than
+  taking an injected builder, since there's no second builder implementation to substitute - real DIP
+  on `LaserDirector`'s side, unnecessary injection here.
+- `LaserPoolManager` parents its pooled lasers directly under its own transform rather than under a
+  separate holder Transform the way Lesson 9's `FireballPoolSystem` does. `World`'s children are all
+  deleted and recreated on every level build; a holder placed there, or anywhere the build touches,
+  would wipe the pool out along with the level. `LaserPoolManager` itself lives under `Scripts`, never
+  touched by a build, so parenting under it directly is both simpler and the only option that's safe.
+- `Fire()` gained `rb.linearVelocity = Vector2.zero;`, clearing residual velocity before every launch -
+  closing a gap Lesson 9's own material names in itself (neither the fireball nor its pool ever resets
+  velocity before reuse). Harmless for the fireball and the garlic, which are always freshly
+  instantiated; a real correctness fix for a laser reactivated mid-flight from the pool.
+- The pool's exhaustion isn't logged by `LaserPoolManager` itself - `GetPooledLaser()` returning `null`
+  is a complete answer on its own. The `<action> ignored - <reason>` line belongs to `LaserWeapon` in
+  Stage 5, the class that actually owns the decision being ignored.
 - `Sprite_LaserRay.png` draws its beam as a horizontal bar in a 48x48 canvas, even though the laser
   always fires straight up. `LaserRay.prefab`'s own Transform gets a 90-degree Z rotation to make the
   art read as vertical, rather than redrawing the sprite or rotating anything in code.
